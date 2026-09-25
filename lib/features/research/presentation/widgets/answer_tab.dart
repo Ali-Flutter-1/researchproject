@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/common.dart';
 import '../../../../core/widgets/status_dot.dart';
 import '../../domain/entities/claim.dart';
@@ -101,7 +102,9 @@ class _CitedParagraph extends StatelessWidget {
 
     return SelectableText.rich(
       TextSpan(
-        style: context.text.bodyLarge?.copyWith(height: 1.7),
+        // The one place in the app a researcher reads several hundred
+        // uninterrupted words. Serif, generous leading.
+        style: AppTypography.reading(color: context.colors.onSurface),
         children: spans,
       ),
     );
@@ -181,7 +184,7 @@ class _NeedsChecking extends StatelessWidget {
                   children: [
                     StatusChip(claim.status),
                     const SizedBox(height: Insets.sm),
-                    Text(claim.text, style: context.text.bodyMedium),
+                    Text(claim.text, style: AppTypography.quotation()),
                     if (claim.note.isNotEmpty) ...[
                       const SizedBox(height: Insets.xs),
                       Text(

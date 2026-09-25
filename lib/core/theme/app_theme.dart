@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
+import 'app_typography.dart';
 
 abstract final class AppTheme {
   static ThemeData light() => _base(Brightness.light);
@@ -13,6 +14,11 @@ abstract final class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
+      fontFamily: AppFonts.sans,
+      textTheme: AppTypography.textTheme().apply(
+        bodyColor: scheme.onSurface,
+        displayColor: scheme.onSurface,
+      ),
       scaffoldBackgroundColor: scheme.surface,
       appBarTheme: AppBarTheme(
         backgroundColor: scheme.surface,

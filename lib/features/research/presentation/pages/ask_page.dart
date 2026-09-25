@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/common.dart';
 import '../../domain/entities/research_run.dart';
 import '../providers/research_providers.dart';
@@ -75,6 +76,7 @@ class _AskPageState extends ConsumerState<AskPage> {
               const SizedBox(height: Insets.lg),
               TextField(
                 controller: _controller,
+                style: AppTypography.reading(color: context.colors.onSurface),
                 maxLines: 4,
                 minLines: 3,
                 textInputAction: TextInputAction.newline,
@@ -85,6 +87,9 @@ class _AskPageState extends ConsumerState<AskPage> {
                   hintText: 'What methods are used for detecting fake news in '
                       'low-resource languages?',
                   hintMaxLines: 2,
+                  hintStyle: AppTypography.reading(
+                    color: context.colors.onSurfaceVariant,
+                  ),
                   errorText: state.error,
                 ),
                 onSubmitted: (_) => _submit(),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/status_dot.dart';
 import '../../domain/entities/claim.dart';
 import '../providers/research_providers.dart';
@@ -87,7 +88,10 @@ class EvidenceView extends ConsumerWidget {
                 ),
                 child: Text(
                   evidence.text,
-                  style: context.text.bodyMedium?.copyWith(height: 1.55),
+                  // Serif marks this as the paper speaking, not the app.
+                  style: AppTypography.quotation(
+                    color: context.colors.onSurface,
+                  ),
                 ),
               ),
               const SizedBox(height: Insets.md),

@@ -65,6 +65,20 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  assets:
+    - assets/fonts/
+
+  # Both are variable fonts. Declaring weights here is not enough on its own —
+  # Flutter needs `fontVariations` on the TextStyle to hit an interpolated
+  # instance, which AppTypography handles. See core/theme/app_typography.dart.
+  fonts:
+    - family: HankenGrotesk
+      fonts:
+        - asset: assets/fonts/HankenGrotesk.ttf
+    - family: LibreCaslonText
+      fonts:
+        - asset: assets/fonts/LibreCaslonText.ttf
+
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg
