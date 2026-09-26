@@ -8,6 +8,7 @@ import '../../domain/repositories/research_repository.dart';
 import '../../domain/usecases/build_comparison.dart';
 import '../../domain/usecases/start_research.dart';
 import '../../domain/usecases/watch_run.dart';
+import '../../../settings/presentation/settings_providers.dart';
 
 // --- Wiring -----------------------------------------------------------------
 
@@ -53,7 +54,10 @@ class AskState {
 }
 
 class AskController extends StateNotifier<AskState> {
-  AskController(this._start) : super(const AskState());
+  /// Seeded from the user's saved defaults, so a researcher who set
+  /// "30 papers, 2015-2026" once does not re-enter it every question.
+  AskController(this._start, RunOptions defaults)
+      : super(AskState(options: defaults));
   final StartResearch _start;
 
   void setOptions(RunOptions options) =>
@@ -81,7 +85,10 @@ class AskController extends StateNotifier<AskState> {
 
 final askControllerProvider =
     StateNotifierProvider<AskController, AskState>(
-  (ref) => AskController(ref.watch(startResearchProvider)),
+  (ref) => AskController(
+    ref.watch(startResearchProvider),
+    ref.watch(settingsProvider).toRunOptions(),
+  ),
 );
 
 // --- Run state --------------------------------------------------------------
