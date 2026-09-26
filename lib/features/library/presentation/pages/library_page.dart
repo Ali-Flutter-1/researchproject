@@ -41,6 +41,7 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
         );
       }
       await repo.add(files);
+      ref.invalidate(libraryUsageProvider);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -104,19 +105,32 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.only(bottom: Insets.sm),
-                      child: Text(
-                        '${papers.length} papers · ${ready.length} ready to '
-                        'search',
-                        style: context.text.bodySmall?.copyWith(
-                            color: context.colors.onSurfaceVariant),
+                      child: Row(
+                        children: [
+                          Icon(Icons.phone_iphone,
+                              size: 13,
+                              color: context.colors.onSurfaceVariant),
+                          const SizedBox(width: Insets.xs),
+                          Expanded(
+                            child: Text(
+                              '${papers.length} papers · ${ready.length} ready '
+                              'to search${_usage(ref)}',
+                              style: context.text.bodySmall?.copyWith(
+                                  color: context.colors.onSurfaceVariant),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     for (final paper in papers)
                       _LibraryTile(
                         paper: paper,
-                        onRemove: () => ref
-                            .read(libraryRepositoryProvider)
-                            .remove(paper.id),
+                        onRemove: () async {
+                          await ref
+                              .read(libraryRepositoryProvider)
+                              .remove(paper.id);
+                          ref.invalidate(libraryUsageProvider);
+                        },
                       ),
                   ],
                 ),
@@ -127,6 +141,17 @@ class _LibraryPageState extends ConsumerState<LibraryPage> {
       ),
     );
   }
+}
+
+/// Papers are kept on this device, so the size is worth stating — it is the
+/// user's storage being used, and they should not have to guess.
+String _usage(WidgetRef ref) {
+  final bytes = ref.watch(libraryUsageProvider).valueOrNull;
+  if (bytes == null || bytes == 0) return '';
+  final mb = bytes / (1024 * 1024);
+  return mb < 1
+      ? ' · ${(bytes / 1024).toStringAsFixed(0)} KB on device'
+      : ' · ${mb.toStringAsFixed(1)} MB on device';
 }
 
 class _LibraryTile extends StatelessWidget {
