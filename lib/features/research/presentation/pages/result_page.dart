@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/common.dart';
+import '../../../export/presentation/widgets/export_sheet.dart';
 import '../../domain/entities/research_run.dart';
 import '../providers/research_providers.dart';
 import '../widgets/answer_tab.dart';
@@ -63,7 +64,7 @@ class _ResultScaffold extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.ios_share),
                 tooltip: 'Export',
-                onPressed: () => _showExport(context),
+                onPressed: () => showExportSheet(context, run),
               ),
             ],
             bottom: PreferredSize(
@@ -101,29 +102,6 @@ class _ResultScaffold extends StatelessWidget {
         ),
       );
 
-  void _showExport(BuildContext context) => showModalBottomSheet<void>(
-        context: context,
-        showDragHandle: true,
-        builder: (_) => SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.description_outlined),
-                title: const Text('Markdown report'),
-                subtitle: const Text('Synthesis, matrix and gaps'),
-                onTap: () => Navigator.pop(context),
-              ),
-              ListTile(
-                leading: const Icon(Icons.menu_book_outlined),
-                title: const Text('BibTeX'),
-                subtitle: Text('${run.papers.length} references'),
-                onTap: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-        ),
-      );
 }
 
 /// Tab 2 — the papers, each with the one line explaining why it was included.
