@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../export/domain/entities/citation_style.dart';
+import '../../inference/domain/entities/llm_model.dart';
 import '../domain/entities/app_settings.dart';
 import '../domain/repositories/settings_repository.dart';
 
@@ -20,6 +21,10 @@ class SettingsRepositoryImpl implements SettingsRepository {
   static const _yearTo = 'yearTo';
   static const _openAccessOnly = 'openAccessOnly';
   static const _includeLibrary = 'includeLibraryByDefault';
+  static const _backend = 'backend';
+  static const _ollamaUrl = 'ollamaUrl';
+  static const _localModel = 'localModel';
+  static const _localEmbeddingModel = 'localEmbeddingModel';
 
   @override
   Future<AppSettings> load() async {
@@ -52,6 +57,15 @@ class SettingsRepositoryImpl implements SettingsRepository {
       openAccessOnly: p.getBool(_openAccessOnly) ?? fallback.openAccessOnly,
       includeLibraryByDefault:
           p.getBool(_includeLibrary) ?? fallback.includeLibraryByDefault,
+      backend: _enum(
+        InferenceBackend.values,
+        p.getString(_backend),
+        fallback.backend,
+      ),
+      ollamaUrl: p.getString(_ollamaUrl) ?? fallback.ollamaUrl,
+      localModel: p.getString(_localModel) ?? fallback.localModel,
+      localEmbeddingModel:
+          p.getString(_localEmbeddingModel) ?? fallback.localEmbeddingModel,
     );
   }
 
@@ -68,6 +82,10 @@ class SettingsRepositoryImpl implements SettingsRepository {
       p.setInt(_yearTo, s.yearTo),
       p.setBool(_openAccessOnly, s.openAccessOnly),
       p.setBool(_includeLibrary, s.includeLibraryByDefault),
+      p.setString(_backend, s.backend.name),
+      p.setString(_ollamaUrl, s.ollamaUrl),
+      p.setString(_localModel, s.localModel),
+      p.setString(_localEmbeddingModel, s.localEmbeddingModel),
     ]);
   }
 

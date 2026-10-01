@@ -8,6 +8,8 @@ import '../../../../core/widgets/common.dart';
 import '../../domain/entities/research_run.dart';
 import '../providers/research_providers.dart';
 import '../widgets/run_history_tile.dart';
+import '../../../inference/domain/entities/llm_model.dart';
+import '../../../inference/presentation/inference_providers.dart';
 
 /// Screen 1 — the entry point. Deliberately close to empty.
 /// Researchers do not know what to set before their first run, and a wall of
@@ -94,7 +96,13 @@ class _AskPageState extends ConsumerState<AskPage> {
                 ),
                 onSubmitted: (_) => _submit(),
               ),
-              const SizedBox(height: Insets.md),
+              const SizedBox(height: Insets.sm),
+              _ModeBanner(
+                backend: ref.watch(effectiveBackendProvider),
+                preferred:
+                    ref.watch(askControllerProvider).options.includeLibrary,
+              ),
+              const SizedBox(height: Insets.sm),
               _Filters(
                 open: _filtersOpen,
                 options: state.options,
@@ -147,6 +155,50 @@ class _AskPageState extends ConsumerState<AskPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Says which pipeline a run will use, before it starts.
+///
+/// A fallback from cloud to local changes the answer quality materially, so
+/// it is never silent — the user sees it here, before spending time on a run.
+class _ModeBanner extends StatelessWidget {
+  const _ModeBanner({required this.backend, required this.preferred});
+
+  final InferenceBackend backend;
+  final bool preferred;
+
+  @override
+  Widget build(BuildContext context) {
+    final offline = backend.isLocal;
+    final color =
+        offline ? AppColors.partial : context.colors.primary;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+          horizontal: Insets.md, vertical: Insets.sm),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.09),
+        borderRadius: BorderRadius.circular(Radii.card),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        children: [
+          Icon(offline ? Icons.cloud_off : Icons.cloud_queue,
+              size: 16, color: color),
+          const SizedBox(width: Insets.sm),
+          Expanded(
+            child: Text(
+              offline
+                  ? 'Offline — searching your library only, with a local model'
+                  : 'Online — searching published papers with the full pipeline',
+              style: context.text.bodySmall?.copyWith(
+                  color: color, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
       ),
     );
   }

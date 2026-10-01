@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 
 import '../../../export/domain/entities/citation_style.dart';
+import '../../../inference/domain/entities/llm_model.dart';
 import '../../../research/domain/entities/research_run.dart';
 
 /// Everything the user can set once and have apply to every future run.
@@ -20,6 +21,10 @@ class AppSettings extends Equatable {
     this.yearTo = 2026,
     this.openAccessOnly = true,
     this.includeLibraryByDefault = false,
+    this.backend = InferenceBackend.cloud,
+    this.ollamaUrl = 'http://localhost:11434',
+    this.localModel = 'llama3.2',
+    this.localEmbeddingModel = 'nomic-embed-text',
   });
 
   final ThemeMode themeMode;
@@ -31,6 +36,18 @@ class AppSettings extends Equatable {
   final int yearTo;
   final bool openAccessOnly;
   final bool includeLibraryByDefault;
+
+  /// Where inference runs. See InferenceBackend — cloud needs internet,
+  /// the other two do not.
+  final InferenceBackend backend;
+
+  /// Ollama's address. Defaults to localhost, which works on desktop and on
+  /// the Android emulator via 10.0.2.2, but a real phone needs the host
+  /// machine's LAN address.
+  final String ollamaUrl;
+
+  final String localModel;
+  final String localEmbeddingModel;
 
   /// The run options a new question starts from.
   RunOptions toRunOptions() => RunOptions(
@@ -58,6 +75,10 @@ class AppSettings extends Equatable {
     int? yearTo,
     bool? openAccessOnly,
     bool? includeLibraryByDefault,
+    InferenceBackend? backend,
+    String? ollamaUrl,
+    String? localModel,
+    String? localEmbeddingModel,
   }) =>
       AppSettings(
         themeMode: themeMode ?? this.themeMode,
@@ -70,6 +91,10 @@ class AppSettings extends Equatable {
         openAccessOnly: openAccessOnly ?? this.openAccessOnly,
         includeLibraryByDefault:
             includeLibraryByDefault ?? this.includeLibraryByDefault,
+        backend: backend ?? this.backend,
+        ollamaUrl: ollamaUrl ?? this.ollamaUrl,
+        localModel: localModel ?? this.localModel,
+        localEmbeddingModel: localEmbeddingModel ?? this.localEmbeddingModel,
       );
 
   @override
@@ -83,5 +108,9 @@ class AppSettings extends Equatable {
         yearTo,
         openAccessOnly,
         includeLibraryByDefault,
+        backend,
+        ollamaUrl,
+        localModel,
+        localEmbeddingModel,
       ];
 }

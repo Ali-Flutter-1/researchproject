@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/common.dart';
 import '../../../export/domain/entities/citation_style.dart';
+import '../../../inference/presentation/backend_settings_section.dart';
 import '../../domain/entities/app_settings.dart';
 import '../settings_providers.dart';
 
@@ -59,6 +60,9 @@ class SettingsPage extends ConsumerWidget {
                     ),
                   ),
                 ),
+
+                const SizedBox(height: Insets.lg),
+                const BackendSettingsSection(),
 
                 const SizedBox(height: Insets.lg),
                 const SectionHeader('Search defaults'),
