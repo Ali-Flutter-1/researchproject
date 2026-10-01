@@ -6,6 +6,7 @@ import '../../../core/widgets/common.dart';
 import '../../settings/presentation/settings_providers.dart';
 import '../domain/entities/llm_model.dart';
 import 'inference_providers.dart';
+import 'model_download_section.dart';
 
 /// Backend selection, with a live connection test.
 ///
@@ -62,10 +63,7 @@ class _BackendSettingsSectionState
                           const SizedBox(width: Insets.sm),
                           const _Pill('No connection', AppColors.partial),
                         ],
-                        if (b == InferenceBackend.onDevice) ...[
-                          const SizedBox(width: Insets.sm),
-                          const _Pill('Coming soon', AppColors.notFound),
-                        ],
+
                       ],
                     ),
                     subtitle:
@@ -75,6 +73,11 @@ class _BackendSettingsSectionState
             ),
           ),
         ),
+
+        if (s.backend == InferenceBackend.onDevice) ...[
+          const SizedBox(height: Insets.md),
+          const ModelDownloadSection(),
+        ],
 
         if (s.backend == InferenceBackend.ollama) ...[
           const SizedBox(height: Insets.md),

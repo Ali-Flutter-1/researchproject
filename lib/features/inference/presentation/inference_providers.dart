@@ -2,7 +2,10 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../settings/presentation/settings_providers.dart';
+import '../data/model_download_manager.dart';
+import '../data/on_device_llm_service.dart';
 import '../data/ollama_llm_service.dart';
+import '../domain/entities/downloadable_model.dart';
 import '../domain/entities/llm_model.dart';
 import '../domain/repositories/llm_service.dart';
 
@@ -23,12 +26,51 @@ final ollamaServiceProvider = Provider<LlmService>((ref) {
   return OllamaLlmService(baseUrl: host);
 });
 
+final modelDownloadsProvider = Provider((ref) => ModelDownloadManager());
+
+final onDeviceServiceProvider = Provider<OnDeviceLlmService>((ref) {
+  final service = OnDeviceLlmService(ref.watch(modelDownloadsProvider));
+  // A loaded model holds ~2GB resident. Dropping it when nothing is watching
+  // is the difference between a backgrounded app surviving and being killed.
+  ref.onDispose(service.release);
+  return service;
+});
+
+/// Per-model state: not downloaded, downloading, ready, or failed.
+final modelStateProvider =
+    FutureProvider.autoDispose.family<ModelState, DownloadableModel>(
+  (ref, model) => ref.watch(modelDownloadsProvider).stateOf(model),
+);
+
+final installedModelsProvider = FutureProvider<List<DownloadableModel>>(
+  (ref) => ref.watch(modelDownloadsProvider).installed(),
+);
+
+final modelStorageProvider = FutureProvider<int>(
+  (ref) => ref.watch(modelDownloadsProvider).usedBytes(),
+);
+
 /// Probes the local backend. Autodisposed and re-run when the address changes,
 /// so editing it in Settings re-tests immediately instead of leaving a stale
 /// "unreachable" on screen.
 final backendStatusProvider = FutureProvider.autoDispose<BackendStatus>(
-  (ref) => ref.watch(ollamaServiceProvider).status(),
+  (ref) {
+    final backend = ref.watch(settingsProvider.select((s) => s.backend));
+    return switch (backend) {
+      InferenceBackend.onDevice => ref.watch(onDeviceServiceProvider).status(),
+      _ => ref.watch(ollamaServiceProvider).status(),
+    };
+  },
 );
+
+/// The service a run will actually use.
+final activeLlmProvider = Provider<LlmService>((ref) {
+  final backend = ref.watch(effectiveBackendProvider);
+  return switch (backend) {
+    InferenceBackend.onDevice => ref.watch(onDeviceServiceProvider),
+    _ => ref.watch(ollamaServiceProvider),
+  };
+});
 
 /// The backend a run will actually use.
 ///

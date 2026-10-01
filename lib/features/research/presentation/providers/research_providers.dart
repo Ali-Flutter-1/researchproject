@@ -1,7 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../data/datasources/mock_research_data_source.dart';
+import '../../data/repositories/offline_research_repository.dart';
 import '../../data/repositories/research_repository_impl.dart';
+import '../../../inference/presentation/inference_providers.dart';
+import '../../../library/presentation/library_providers.dart';
+import '../../../library/data/library_repository_impl.dart';
 import '../../domain/entities/claim.dart';
 import '../../domain/entities/research_run.dart';
 import '../../domain/repositories/research_repository.dart';
@@ -15,9 +19,24 @@ import '../../../settings/presentation/settings_providers.dart';
 final _dataSourceProvider =
     Provider<MockResearchDataSource>((ref) => MockResearchDataSource());
 
-final researchRepositoryProvider = Provider<ResearchRepository>(
-  (ref) => ResearchRepositoryImpl(ref.watch(_dataSourceProvider)),
-);
+/// Picks the pipeline for the active backend.
+///
+/// Offline is REAL: it extracts text from the user's PDFs, retrieves with
+/// BM25 and streams a local model's answer. Online is still the mock — it
+/// returns the same sample papers whatever you ask, until the ASP.NET API
+/// exists. The Ask screen says which one is running.
+final researchRepositoryProvider = Provider<ResearchRepository>((ref) {
+  final backend = ref.watch(effectiveBackendProvider);
+
+  if (backend.isLocal) {
+    return OfflineResearchRepository(
+      library: ref.watch(libraryRepositoryProvider) as LibraryRepositoryImpl,
+      llm: ref.watch(activeLlmProvider),
+      model: ref.watch(settingsProvider.select((s) => s.localModel)),
+    );
+  }
+  return ResearchRepositoryImpl(ref.watch(_dataSourceProvider));
+});
 
 final startResearchProvider = Provider(
   (ref) => StartResearch(ref.watch(researchRepositoryProvider)),

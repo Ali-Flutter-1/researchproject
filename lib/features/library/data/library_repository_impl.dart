@@ -5,6 +5,7 @@ import 'package:file_picker/file_picker.dart';
 import '../domain/entities/library_paper.dart';
 import '../domain/repositories/library_repository.dart';
 import 'library_storage.dart';
+import 'pdf_text_extractor.dart';
 
 /// The picker and the on-device storage are real; only the parsing behind
 /// them is simulated until the API lands. Papers survive a restart, because
@@ -14,6 +15,10 @@ class LibraryRepositoryImpl implements LibraryRepository {
 
   final LibraryStorage _storage;
   final _papers = <LibraryPaper>[];
+
+  /// Real extracted text, keyed by paper. This is what offline search
+  /// actually retrieves against.
+  final _chunks = <String, List<TextChunk>>{};
   final _controller = StreamController<List<LibraryPaper>>.broadcast();
   var _restored = false;
 
@@ -91,11 +96,41 @@ class LibraryRepositoryImpl implements LibraryRepository {
   @override
   Future<void> remove(String id) async {
     _papers.removeWhere((p) => p.id == id);
+    _chunks.remove(id);
     await _storage.delete(id);
     await _persist();
   }
 
   Future<int> usedBytes() => _storage.usedBytes();
+
+  /// Every chunk across every ready paper — the corpus offline search runs
+  /// over. Re-extracts from disk for papers whose chunks are not in memory,
+  /// which is the normal case after an app restart.
+  Future<List<TextChunk>> corpus() async {
+    final all = <TextChunk>[];
+    for (final paper in _papers.where((p) => p.status == IngestStatus.ready)) {
+      var chunks = _chunks[paper.id];
+      if (chunks == null) {
+        final file = await _storage.pdfFile(paper.id);
+        if (!file.existsSync()) continue;
+        final result =
+            await PdfTextExtractor2.extract(paperId: paper.id, file: file);
+        chunks = result.chunks;
+        _chunks[paper.id] = chunks;
+      }
+      all.addAll(chunks);
+    }
+    return all;
+  }
+
+  LibraryPaper? paperFor(String chunkId) {
+    for (final entry in _chunks.entries) {
+      if (entry.value.any((c) => c.id == chunkId)) {
+        return _papers.where((p) => p.id == entry.key).firstOrNull;
+      }
+    }
+    return null;
+  }
 
   Future<void> _resumePending() async {
     for (final p in _papers.where((p) => !p.status.isTerminal).toList()) {
@@ -103,35 +138,53 @@ class LibraryRepositoryImpl implements LibraryRepository {
     }
   }
 
+  /// Real extraction. Opens the PDF, pulls its text, chunks it, and keeps
+  /// the chunks for retrieval. No simulation — the page and section counts
+  /// shown in the UI are what was actually found in the file.
   Future<void> _ingest(String id) async {
-    Future<void> step(IngestStatus status, int ms) async {
-      await Future<void>.delayed(Duration(milliseconds: ms));
-      _update(id, (p) => p.copyWith(status: status));
-    }
-
-    await step(IngestStatus.parsing, 700);
-    await step(IngestStatus.chunking, 900);
-    await Future<void>.delayed(const Duration(milliseconds: 500));
+    _update(id, (p) => p.copyWith(status: IngestStatus.parsing));
 
     final paper = _papers.where((p) => p.id == id).firstOrNull;
     if (paper == null) return;
 
-    // A scanned PDF has no text layer and cannot be parsed. Roughly one in
-    // six real uploads hits this, so the UI must handle it as a normal case.
-    final failed = paper.sizeBytes > 0 && paper.filename.hashCode % 6 == 0;
+    final file = await _storage.pdfFile(id);
+    if (!file.existsSync()) {
+      _update(
+        id,
+        (p) => p.copyWith(
+          status: IngestStatus.failed,
+          error: 'The file is missing from storage.',
+        ),
+      );
+      await _persist();
+      return;
+    }
+
+    final result = await PdfTextExtractor2.extract(paperId: id, file: file);
+
+    if (!result.succeeded) {
+      _update(
+        id,
+        (p) => p.copyWith(
+          status: IngestStatus.failed,
+          error: result.failureReason ?? 'No readable text found.',
+        ),
+      );
+      await _persist();
+      return;
+    }
+
+    _update(id, (p) => p.copyWith(status: IngestStatus.chunking));
+    _chunks[id] = result.chunks;
+
     _update(
       id,
-      (p) => failed
-          ? p.copyWith(
-              status: IngestStatus.failed,
-              error: 'No text layer found — this looks like a scanned PDF.',
-            )
-          : p.copyWith(
-              status: IngestStatus.ready,
-              title: _titleFrom(p.filename),
-              pageCount: 8 + (p.filename.hashCode.abs() % 14),
-              chunkCount: 40 + (p.filename.hashCode.abs() % 60),
-            ),
+      (p) => p.copyWith(
+        status: IngestStatus.ready,
+        title: result.title ?? _titleFrom(p.filename),
+        pageCount: result.pageCount,
+        chunkCount: result.chunks.length,
+      ),
     );
     await _persist();
   }

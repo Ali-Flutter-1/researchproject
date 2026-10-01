@@ -192,8 +192,12 @@ class _ModeBanner extends StatelessWidget {
           Expanded(
             child: Text(
               offline
-                  ? 'Offline — searching your library only, with a local model'
-                  : 'Online — searching published papers with the full pipeline',
+                  ? 'Offline — real answers from your library, using a local '
+                      'model'
+                  // Saying this plainly beats letting someone demo canned
+                  // output believing it is real.
+                  : 'Online — SAMPLE DATA. The research API is not built yet, '
+                      'so every question returns the same example result.',
               style: context.text.bodySmall?.copyWith(
                   color: color, fontWeight: FontWeight.w600),
             ),

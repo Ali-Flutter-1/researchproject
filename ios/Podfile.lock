@@ -1,7 +1,11 @@
 PODS:
+  - connectivity_plus (0.0.1):
+    - Flutter
   - file_picker_darwin (1.0.0):
     - Flutter
     - FlutterMacOS
+  - fllama (0.0.1):
+    - Flutter
   - Flutter (1.0.0)
   - printing (1.0.0):
     - Flutter
@@ -12,15 +16,21 @@ PODS:
     - FlutterMacOS
 
 DEPENDENCIES:
+  - connectivity_plus (from `.symlinks/plugins/connectivity_plus/ios`)
   - file_picker_darwin (from `.symlinks/plugins/file_picker_darwin/darwin`)
+  - fllama (from `.symlinks/plugins/fllama/ios`)
   - Flutter (from `Flutter`)
   - printing (from `.symlinks/plugins/printing/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
 
 EXTERNAL SOURCES:
+  connectivity_plus:
+    :path: ".symlinks/plugins/connectivity_plus/ios"
   file_picker_darwin:
     :path: ".symlinks/plugins/file_picker_darwin/darwin"
+  fllama:
+    :path: ".symlinks/plugins/fllama/ios"
   Flutter:
     :path: Flutter
   printing:
@@ -31,7 +41,9 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
 
 SPEC CHECKSUMS:
+  connectivity_plus: cb623214f4e1f6ef8fe7403d580fdad517d2f7dd
   file_picker_darwin: 4c2b9a50ea44cb3b071381ea0cf48591bdd80251
+  fllama: 3b57c5b47a584844e4cb82c8476237d59b8db74c
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   printing: 54ff03f28fe9ba3aa93358afb80a8595a071dd07
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
