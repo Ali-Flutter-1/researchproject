@@ -50,10 +50,9 @@ class DownloadableModel extends Equatable {
       sizeBytes: 2100000000,
       parameterCount: '3B',
       contextTokens: 32768,
-      summary: 'Best balance for most phones. Handles long passages and '
-          'follows the citation format reliably.',
-      recommended: true,
-      minimumRamMb: 4096,
+      summary: 'Better answers, but needs 6GB+ of RAM. On a 4GB phone iOS '
+          'will kill the app mid-answer.',
+      minimumRamMb: 6144,
     ),
     DownloadableModel(
       id: 'llama-3.2-1b-instruct-q4',
@@ -63,8 +62,9 @@ class DownloadableModel extends Equatable {
       sizeBytes: 808000000,
       parameterCount: '1B',
       contextTokens: 8192,
-      summary: 'Small and fast. Use on older phones — answers are shorter '
-          'and it misses nuance.',
+      summary: 'Runs on any phone. Answers are shorter and miss nuance, but '
+          'it finishes — which the larger models will not on 4GB devices.',
+      recommended: true,
       minimumRamMb: 2048,
     ),
     DownloadableModel(

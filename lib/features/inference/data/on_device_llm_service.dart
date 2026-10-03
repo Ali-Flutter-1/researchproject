@@ -137,9 +137,20 @@ class OnDeviceLlmService implements LlmService {
         file.path,
         // Capped well below the model's maximum: context memory grows with
         // this number and the OS will kill the app before llama.cpp complains.
-        nCtx: spec.contextTokens.clamp(512, 4096),
-        nGpuLayers: 99, // Metal on iOS, ignored where unsupported.
+        nCtx: spec.contextTokens.clamp(512, 2048),
+        // CPU only. Offloading to Metal crashes this fllama build on older
+        // A-series chips: llama.cpp reports "device Metal does not support
+        // async, host buffers or events" and then dies with EXC_BAD_ACCESS
+        // inside load_all_data. Verified on an iPhone 11 (A13) loading
+        // Llama 3.2 1B Q4 — it offloads 17/17 layers, then segfaults.
+        //
+        // CPU inference on a 1B Q4 is a few tokens per second, which is slow
+        // but works. A crash is not a tradeoff worth making for speed.
+        nGpuLayers: 0,
         useMmap: true,
+        // mlock pins the model in physical memory. On a 4GB phone that
+        // invites the OS to kill the app outright rather than page.
+        useMlock: false,
       );
 
       _contextId = (result?['contextId'] as num?)?.toDouble();
